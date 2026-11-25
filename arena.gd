@@ -10,6 +10,7 @@ const TARGET_POSITIONS := [
 ]
 
 const Profile = preload("res://profile.gd")
+const CoverDetail = preload("res://cover_detail.gd")
 const MENU := "res://menu.tscn"
 
 var player := Player.new()
@@ -58,9 +59,13 @@ func build_map() -> void:
 	for x in [-11, 11]:
 		box(self, Vector3(x, 2, 0), Vector3(0.5, 4, 26), concrete)
 	for position in [Vector3(-5, 1, 1), Vector3(1, 1, -2), Vector3(5, 1, 5)]:
-		box(self, position, Vector3(2.8, 2, 1.5), cover)
+		add_cover(position, Vector3(2.8, 2, 1.5), cover, Color("#ffb451"), true)
 	for x in [-8, -4, 0, 4, 8]:
 		box(self, Vector3(x, 0.005, 0), Vector3(0.045, 0.01, 24), Color("#3f596b"))
+
+func add_cover(center: Vector3, size: Vector3, color: Color, accent: Color, shipping_crate: bool) -> void:
+	var body := box(self, center, size, color)
+	CoverDetail.dress(body, size, accent, shipping_crate)
 
 func box(parent: Node3D, center: Vector3, size: Vector3, color: Color) -> StaticBody3D:
 	var body := StaticBody3D.new()

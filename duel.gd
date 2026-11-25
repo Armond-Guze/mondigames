@@ -50,7 +50,7 @@ func build_map() -> void:
 	if foundry:
 		cover = [Vector3(-6, 0, -3), Vector3(6, 0, 2), Vector3(-2, 0, 4), Vector3(2, 0, -4)]
 	for center: Vector3 in cover:
-		box(self, center + Vector3.UP, Vector3(3, 2, 1.65), walls.lightened(0.13))
+		add_cover(center + Vector3.UP, Vector3(3, 2, 1.65), walls.lightened(0.13), trim, not foundry)
 		box(self, center + Vector3(0, 2.035, 0), Vector3(3.02, 0.07, 1.67), trim)
 
 func reset_round() -> void:
