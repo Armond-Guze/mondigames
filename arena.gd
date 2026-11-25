@@ -9,6 +9,9 @@ const TARGET_POSITIONS := [
 	Vector3(4, 1.15, -9), Vector3(7, 1.15, -4), Vector3(6, 1.15, 3)
 ]
 
+const Profile = preload("res://profile.gd")
+const MENU := "res://menu.tscn"
+
 var player := Player.new()
 var targets := Node3D.new()
 var hud := Label.new()
@@ -36,6 +39,17 @@ func _ready() -> void:
 	sun.shadow_enabled = true
 	add_child(sun)
 
+	build_map()
+	add_child(targets)
+	add_child(player)
+	shot_sound.stream = preload("res://shot.wav")
+	shot_sound.volume_db = -8.0
+	shot_sound.max_polyphony = 3
+	add_child(shot_sound)
+	build_hud()
+	reset_round()
+
+func build_map() -> void:
 	var concrete := Color("#39495c")
 	var cover := Color("#52677d")
 	box(self, Vector3(0, -0.25, 0), Vector3(22, 0.5, 26), Color("#283747"))
@@ -47,14 +61,6 @@ func _ready() -> void:
 		box(self, position, Vector3(2.8, 2, 1.5), cover)
 	for x in [-8, -4, 0, 4, 8]:
 		box(self, Vector3(x, 0.005, 0), Vector3(0.045, 0.01, 24), Color("#3f596b"))
-	add_child(targets)
-	add_child(player)
-	shot_sound.stream = preload("res://shot.wav")
-	shot_sound.volume_db = -8.0
-	shot_sound.max_polyphony = 3
-	add_child(shot_sound)
-	build_hud()
-	reset_round()
 
 func box(parent: Node3D, center: Vector3, size: Vector3, color: Color) -> StaticBody3D:
 	var body := StaticBody3D.new()
@@ -102,12 +108,14 @@ func build_hud() -> void:
 	overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	layer.add_child(overlay)
 
-func reset_round() -> void:
+func clear_targets() -> void:
 	for target in targets.get_children():
 		targets.remove_child(target)
 		target.queue_free()
-	for position in TARGET_POSITIONS:
-		box(targets, position, Vector3(0.8, 0.8, 0.28), Color("#ffb451"))
+
+func reset_round() -> void:
+	clear_targets()
+	spawn_targets()
 	player.position = SPAWN
 	player.rotation = Vector3.ZERO
 	player.camera.rotation = Vector3.ZERO
@@ -121,17 +129,23 @@ func reset_round() -> void:
 	hit_marker_left = 0.0
 	shot_queued = false
 
+func spawn_targets() -> void:
+	for position in TARGET_POSITIONS:
+		box(targets, position, Vector3(0.8, 0.8, 0.28), Color("#ffb451"))
+
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and not event.echo:
 		match event.physical_keycode:
+			KEY_TAB:
+				Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+				get_tree().change_scene_to_file(MENU)
 			KEY_ESCAPE:
 				Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 			KEY_R:
 				if Input.mouse_mode == Input.MOUSE_MODE_CAPTURED and not finished and ammo < MAGAZINE:
 					reload_left = 0.85
 			KEY_ENTER:
-				reset_round()
-				Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+				advance_round()
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 		if finished:
 			return
@@ -153,11 +167,18 @@ func shoot() -> void:
 	if not result.is_empty() and result.collider.get_parent() == targets:
 		hits += 1
 		hit_marker_left = 0.18
-		targets.remove_child(result.collider)
-		result.collider.queue_free()
-		if hits == TARGET_POSITIONS.size():
-			finish_round()
+		handle_hit(result.collider)
 	player.camera.rotation.x = minf(player.camera.rotation.x + 0.012, 1.45)
+
+func handle_hit(target: Node3D) -> void:
+	targets.remove_child(target)
+	target.queue_free()
+	if hits == TARGET_POSITIONS.size():
+		finish_round()
+
+func advance_round() -> void:
+	reset_round()
+	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 
 func finish_round() -> void:
 	finished = true
@@ -177,18 +198,29 @@ func _physics_process(delta: float) -> void:
 				ammo = MAGAZINE
 		if time_left == 0.0:
 			finish_round()
+		else:
+			update_opponent(delta)
 
 	hit_marker_left = maxf(0.0, hit_marker_left - delta)
 	crosshair.text = "×" if hit_marker_left > 0.0 else "+"
 	crosshair.modulate = Color("#ffce79") if hit_marker_left > 0.0 else Color.WHITE
 
+	update_hud()
+
+func update_opponent(_delta: float) -> void:
+	pass
+
+func ammo_label() -> String:
 	var ammo_text := "%d / %d" % [ammo, MAGAZINE]
 	if reload_left > 0.0:
 		ammo_text = "RELOADING"
 	elif ammo == 0:
 		ammo_text = "EMPTY  [R]"
+	return ammo_text
+
+func update_hud() -> void:
 	hud.text = "MONDIGAMES   /   RANGE\n%02ds     %d/%d TARGETS     %s" % [
-		ceili(time_left), hits, TARGET_POSITIONS.size(), ammo_text
+		ceili(time_left), hits, TARGET_POSITIONS.size(), ammo_label()
 	]
 	overlay.text = ""
 	if finished:
@@ -198,4 +230,4 @@ func _physics_process(delta: float) -> void:
 		var accuracy := roundi(100.0 * hits / maxi(shots, 1))
 		overlay.text = "%s   /   %d%% ACCURACY\nPress Enter to restart" % [result_text, accuracy]
 	elif Input.mouse_mode != Input.MOUSE_MODE_CAPTURED:
-		overlay.text = "Click to enter the range\nWASD Move  ·  Shift Walk  ·  Space Jump  ·  Click Shoot  ·  R Reload  ·  Esc Pause"
+		overlay.text = "Click to enter the range\nWASD Move  ·  Shift Walk  ·  Space Jump  ·  Click Shoot  ·  R Reload  ·  Esc Pause  ·  Tab Menu"

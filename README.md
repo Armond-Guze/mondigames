@@ -1,18 +1,28 @@
-# MondiGames prototype
+# MondiGames
 
-An original desktop tactical FPS prototype. The first build is an offline practice range with six targets, a 45-second clock, and an eight-shot magazine.
+An offline tactical FPS built in Godot. Play a first-to-five duel against a bot or warm up in the timed practice range.
 
-The second build adds a visible weapon, shot audio, and an amber hit marker.
+## Play
 
-## Run it
+Open `project.godot` in Godot 4.7 and run the project with F5. In the menu, choose an arena, difficulty, and one of six weapon skins. These selections are saved locally.
 
-Extract the project, import `project.godot` in Godot 4, and press F6 with `arena.tscn` open or F5 to run the project.
+| Control | Action |
+| --- | --- |
+| WASD | Move |
+| Mouse | Aim |
+| Left click | Capture the mouse or shoot |
+| Shift | Walk |
+| Space | Jump |
+| R | Reload |
+| Esc | Pause and release the mouse |
+| Enter | Next round, rematch, or restart the range |
+| Tab | Return to the main menu |
 
-Click the game to capture the mouse. Move with WASD, walk with Shift, jump with Space, aim with the mouse, shoot with left click, and reload with R. Escape pauses and releases the mouse. Enter starts a fresh round.
+## Modes
 
-## Source
+- **Duel** plays on Switchyard or Foundry against a bot that strafes, checks line of sight, and fires back. Win a round by defeating the bot or finishing with more health when the 45-second clock expires. Ties award no point. The first to five points wins the match.
+- **Practice Range** gives you 45 seconds to clear six targets and scores your accuracy.
 
-- `arena.gd` builds the map and handles targets, timing, shooting, and the HUD.
-- `player.gd` controls movement and camera input.
+## Updates
 
-The next milestone is a small original map with a round objective and a private 1v1 playtest. Use that playtest to refine movement, map routes, and round pacing before expanding to larger teams.
+Fetch and pull from GitHub Desktop, then run the same Godot project again.

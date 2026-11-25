@@ -1,12 +1,15 @@
 extends Node3D
 
+const Profile = preload("res://profile.gd")
+
 const REST := Vector3(0.09, -0.075, -0.19)
 
 func _ready() -> void:
 	position = REST
 	var body := Color("#283647")
-	var slide := Color("#65778c")
-	var accent := Color("#ffb451")
+	var palette: Array = Profile.SKINS[Profile.choice("skin", Profile.SKINS.size())]
+	var slide := Color(palette[1])
+	var accent := Color(palette[2])
 	part(Vector3.ZERO, Vector3(0.046, 0.032, 0.103), slide)
 	part(Vector3(0, -0.02, 0.011), Vector3(0.048, 0.018, 0.083), body)
 	part(Vector3(0, -0.044, 0.029), Vector3(0.036, 0.045, 0.035), body)
