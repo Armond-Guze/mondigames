@@ -4,12 +4,14 @@ const Player = preload("res://player.gd")
 const SPAWN := Vector3(0, 0.05, 9)
 const ROUND_TIME := 45.0
 const MAGAZINE := 8
+const RELOAD_TIME := 0.85
 const TARGET_POSITIONS := [
 	Vector3(-7, 1.15, -6), Vector3(-3, 1.15, -9), Vector3(0, 1.15, -7),
 	Vector3(4, 1.15, -9), Vector3(7, 1.15, -4), Vector3(6, 1.15, 3)
 ]
 
 const Profile = preload("res://profile.gd")
+const OutdoorYard = preload("res://outdoor_yard.gd")
 const CoverDetail = preload("res://cover_detail.gd")
 const MENU := "res://menu.tscn"
 
@@ -38,6 +40,8 @@ func _ready() -> void:
 	var sun := DirectionalLight3D.new()
 	sun.rotation_degrees = Vector3(-50, -25, 0)
 	sun.shadow_enabled = true
+	if is_outdoors():
+		OutdoorYard.light_world(environment.environment, sun)
 	add_child(sun)
 
 	build_map()
@@ -50,10 +54,13 @@ func _ready() -> void:
 	build_hud()
 	reset_round()
 
+func is_outdoors() -> bool:
+	return true
+
 func build_map() -> void:
 	var concrete := Color("#39495c")
 	var cover := Color("#52677d")
-	box(self, Vector3(0, -0.25, 0), Vector3(22, 0.5, 26), Color("#283747"))
+	OutdoorYard.dress(self, box(self, Vector3(0, -0.25, 0), Vector3(22, 0.5, 26), Color("#283747")))
 	box(self, Vector3(0, 2, -13), Vector3(22, 4, 0.5), concrete)
 	box(self, Vector3(0, 2, 13), Vector3(22, 4, 0.5), concrete)
 	for x in [-11, 11]:
@@ -127,6 +134,7 @@ func reset_round() -> void:
 	player.velocity = Vector3.ZERO
 	time_left = ROUND_TIME
 	reload_left = 0.0
+	player.weapon.pose_reload(0.0)
 	ammo = MAGAZINE
 	hits = 0
 	shots = 0
@@ -147,8 +155,8 @@ func _unhandled_input(event: InputEvent) -> void:
 			KEY_ESCAPE:
 				Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 			KEY_R:
-				if Input.mouse_mode == Input.MOUSE_MODE_CAPTURED and not finished and ammo < MAGAZINE:
-					reload_left = 0.85
+				if Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
+					start_reload()
 			KEY_ENTER:
 				advance_round()
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
@@ -197,10 +205,7 @@ func _physics_process(delta: float) -> void:
 
 	if not finished and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
 		time_left = maxf(0.0, time_left - delta)
-		if reload_left > 0.0:
-			reload_left = maxf(0.0, reload_left - delta)
-			if reload_left == 0.0:
-				ammo = MAGAZINE
+		update_reload(delta)
 		if time_left == 0.0:
 			finish_round()
 		else:
@@ -211,6 +216,18 @@ func _physics_process(delta: float) -> void:
 	crosshair.modulate = Color("#ffce79") if hit_marker_left > 0.0 else Color.WHITE
 
 	update_hud()
+
+func start_reload() -> void:
+	if not finished and ammo < MAGAZINE and reload_left == 0.0:
+		reload_left = RELOAD_TIME
+
+func update_reload(delta: float) -> void:
+	if reload_left <= 0.0:
+		return
+	reload_left = maxf(0.0, reload_left - delta)
+	player.weapon.pose_reload(1.0 - reload_left / RELOAD_TIME)
+	if reload_left == 0.0:
+		ammo = MAGAZINE
 
 func update_opponent(_delta: float) -> void:
 	pass

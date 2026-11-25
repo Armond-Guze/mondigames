@@ -32,12 +32,17 @@ func _ready() -> void:
 	damage_flash.color = Color(0.8, 0.06, 0.04, 0.0)
 	layer.add_child(damage_flash)
 
+func is_outdoors() -> bool:
+	return map_index == 0
+
 func build_map() -> void:
 	var foundry := map_index == 1
 	var walls := Color("#474453") if foundry else Color("#3c535d")
 	var floor_color := Color("#302b32") if foundry else Color("#233139")
 	var trim := Color("#d98a50") if foundry else Color("#5bb4b3")
-	box(self, Vector3(0, -0.25, 0), Vector3(22, 0.5, 26), floor_color)
+	var floor_body := box(self, Vector3(0, -0.25, 0), Vector3(22, 0.5, 26), floor_color)
+	if is_outdoors():
+		OutdoorYard.dress(self, floor_body)
 	for z in [-13, 13]:
 		box(self, Vector3(0, 2.6, z), Vector3(22, 5.2, 0.5), walls)
 		box(self, Vector3(0, 3.4, z * 0.975), Vector3(21.4, 0.11, 0.08), trim)
