@@ -1,5 +1,10 @@
 extends CharacterBody3D
 
+const HIP_FOV := 80.0
+const AIM_FOV := 52.0
+const MOUSE_SENSITIVITY := 0.0025
+
+var aim_weight := 0.0
 var weapon := preload("res://weapon_view.gd").new()
 var camera := Camera3D.new()
 
@@ -12,15 +17,16 @@ func _ready() -> void:
 	collider.position.y = 0.9
 	add_child(collider)
 	camera.position.y = 1.58
-	camera.fov = 80
+	camera.fov = HIP_FOV
 	add_child(camera)
 	camera.make_current()
 	camera.add_child(weapon)
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventMouseMotion and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
-		rotate_y(-event.relative.x * 0.0025)
-		camera.rotation.x = clampf(camera.rotation.x - event.relative.y * 0.0025, -1.45, 1.45)
+		var sensitivity := MOUSE_SENSITIVITY * lerpf(1.0, 0.65, aim_weight)
+		rotate_y(-event.relative.x * sensitivity)
+		camera.rotation.x = clampf(camera.rotation.x - event.relative.y * sensitivity, -1.45, 1.45)
 
 func _physics_process(delta: float) -> void:
 	var direction := Vector3.ZERO
@@ -38,3 +44,12 @@ func _physics_process(delta: float) -> void:
 	elif Input.mouse_mode == Input.MOUSE_MODE_CAPTURED and Input.is_physical_key_pressed(KEY_SPACE):
 		velocity.y = 5.0
 	move_and_slide()
+
+func _process(delta: float) -> void:
+	var aiming := Input.mouse_mode == Input.MOUSE_MODE_CAPTURED and Input.is_mouse_button_pressed(MOUSE_BUTTON_RIGHT)
+	update_aim(aiming and weapon.reload_progress == 0.0, delta)
+
+func update_aim(aiming: bool, delta: float) -> void:
+	aim_weight = move_toward(aim_weight, float(aiming), delta * 7.0)
+	camera.fov = lerpf(HIP_FOV, AIM_FOV, aim_weight)
+	weapon.aim_weight = aim_weight

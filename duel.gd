@@ -1,5 +1,7 @@
 extends "res://arena.gd"
 
+const OpponentView = preload("res://opponent_view.gd")
+
 const WIN_SCORE := 5
 const BOT_POS := Vector3(0, 0.95, -8.5)
 const MAP_NAMES := ["Switchyard", "Foundry"]
@@ -8,6 +10,7 @@ const DIFFICULTIES := ["Standard", "Veteran"]
 var map_index := Profile.choice("map", MAP_NAMES.size())
 var veteran := Profile.choice("difficulty", DIFFICULTIES.size()) == 1
 var bot: StaticBody3D
+var opponent_view: OpponentView
 var player_score := 0
 var bot_score := 0
 var player_health := 100
@@ -71,16 +74,8 @@ func spawn_targets() -> void:
 	bot = box(targets, BOT_POS, Vector3(0.72, 1.7, 0.55), Color("#973f43"))
 	var hitbox_mesh := bot.get_child(1) as MeshInstance3D
 	hitbox_mesh.hide()
-	bot_part(Vector3(0, 0.59, 0), Vector3(0.44, 0.49, 0.42), Color("#56353c"))
-	bot_part(Vector3(0, 0.65, 0.22), Vector3(0.37, 0.12, 0.025), Color("#ffbc71"))
-	bot_part(Vector3(0, 0.09, 0), Vector3(0.64, 0.56, 0.48), Color("#973f43"))
-	for side in [-1, 1]:
-		bot_part(Vector3(0.18 * side, -0.51, 0), Vector3(0.24, 0.7, 0.39), Color("#653c49"))
-
-func bot_part(center: Vector3, size: Vector3, color: Color) -> void:
-	var part := box(bot, center, size, color)
-	part.collision_layer = 0
-	part.collision_mask = 0
+	opponent_view = OpponentView.new()
+	bot.add_child(opponent_view)
 
 func advance_round() -> void:
 	if not finished:
@@ -113,6 +108,7 @@ func finish_round() -> void:
 func update_opponent(delta: float) -> void:
 	bot_clock += delta * (1.1 if veteran else 0.83)
 	bot.position.x = sin(bot_clock) * 8.0
+	opponent_view.face_and_stride(player.global_position, delta, absf(cos(bot_clock)))
 	bot_cooldown = maxf(0.0, bot_cooldown - delta)
 	if bot_cooldown > 0.0:
 		return
@@ -151,4 +147,4 @@ func update_hud() -> void:
 		else:
 			overlay.text = "%s\nEnter Next Round  ·  Tab Menu" % result_text
 	elif Input.mouse_mode != Input.MOUSE_MODE_CAPTURED:
-		overlay.text = "Click to play   ·   Tab Menu\nWASD Move  ·  Shift Walk  ·  Space Jump  ·  R Reload"
+		overlay.text = "Click to play   ·   Tab Menu\nWASD Move  ·  Shift Walk  ·  Space Jump  ·  RMB Aim  ·  R Reload"

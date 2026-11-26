@@ -214,6 +214,7 @@ func _physics_process(delta: float) -> void:
 	hit_marker_left = maxf(0.0, hit_marker_left - delta)
 	crosshair.text = "×" if hit_marker_left > 0.0 else "+"
 	crosshair.modulate = Color("#ffce79") if hit_marker_left > 0.0 else Color.WHITE
+	crosshair.modulate.a = 1.0 if hit_marker_left > 0.0 else 1.0 - player.aim_weight
 
 	update_hud()
 
@@ -252,4 +253,4 @@ func update_hud() -> void:
 		var accuracy := roundi(100.0 * hits / maxi(shots, 1))
 		overlay.text = "%s   /   %d%% ACCURACY\nPress Enter to restart" % [result_text, accuracy]
 	elif Input.mouse_mode != Input.MOUSE_MODE_CAPTURED:
-		overlay.text = "Click to enter the range\nWASD Move  ·  Shift Walk  ·  Space Jump  ·  Click Shoot  ·  R Reload  ·  Esc Pause  ·  Tab Menu"
+		overlay.text = "Click to enter the range\nWASD Move  ·  Shift Walk  ·  Space Jump  ·  Click Shoot  ·  RMB Aim  ·  R Reload  ·  Esc Pause  ·  Tab Menu"

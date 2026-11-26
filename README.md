@@ -11,6 +11,7 @@ Open `project.godot` in Godot 4.7 and run the project with F5. In the menu, choo
 | WASD | Move |
 | Mouse | Aim |
 | Left click | Capture the mouse or shoot |
+| Hold right click | Aim down sights |
 | Shift | Walk |
 | Space | Jump |
 | R | Reload |

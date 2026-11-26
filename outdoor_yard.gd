@@ -18,11 +18,12 @@ static func light_world(environment: Environment, sun: DirectionalLight3D) -> vo
 	sun.light_energy = 0.92
 
 static func dress(parent: Node3D, floor_body: StaticBody3D) -> void:
+	add_rock_banks(parent)
 	var noise := FastNoiseLite.new()
 	noise.seed = 17
 	noise.frequency = 0.042
 	var palette := Gradient.new()
-	palette.colors = PackedColorArray([Color("#555645"), Color("#aca389")])
+	palette.colors = PackedColorArray([Color("#75634d"), Color("#c9b994")])
 	var texture := NoiseTexture2D.new()
 	texture.width = 512
 	texture.height = 512
@@ -102,3 +103,49 @@ static func make_tuft() -> ArrayMesh:
 		mesh.add_vertex(tip)
 	mesh.generate_normals()
 	return mesh.commit()
+
+static func add_rock_banks(parent: Node3D) -> void:
+	var random := RandomNumberGenerator.new()
+	random.seed = 3148
+	var noise := FastNoiseLite.new()
+	noise.seed = 33
+	noise.frequency = 3.5
+	var texture := NoiseTexture2D.new()
+	texture.noise = noise
+	texture.width = 256
+	texture.height = 256
+	texture.as_normal_map = true
+	texture.bump_strength = 3.0
+	var surfaces: Array[StandardMaterial3D] = []
+	for color in [Color("#97836b"), Color("#a59479"), Color("#857562")]:
+		var surface := Prop.material(color)
+		surface.normal_enabled = true
+		surface.normal_texture = texture
+		surface.uv1_triplanar = true
+		surfaces.append(surface)
+
+	var source := SphereMesh.new()
+	source.radial_segments = 14
+	source.rings = 8
+	var geometry := SurfaceTool.new()
+	geometry.create_from(source, 0)
+	var arrays := geometry.commit_to_arrays()
+	var vertices: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX]
+	for index in range(vertices.size()):
+		var point := vertices[index]
+		vertices[index] = point * (1.0 + 0.24 * noise.get_noise_3dv(point))
+	arrays[Mesh.ARRAY_VERTEX] = vertices
+	var rock_mesh := ArrayMesh.new()
+	rock_mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays)
+
+	for index in range(26):
+		var x := index * 1.75 - 22.0
+		var size := random.randf_range(4.6, 9.0)
+		var rock := Prop.place(parent, Vector3(x, 1.1, random.randf_range(-21.0, -15.6)), rock_mesh, surfaces[index % surfaces.size()])
+		rock.scale = Vector3(size * 1.25, size * 1.65, size)
+		rock.rotation.y = random.randf_range(-PI, PI)
+	for index in range(28):
+		var side := -1.0 if index % 2 == 0 else 1.0
+		var size := random.randf_range(0.14, 0.52)
+		var rock := Prop.place(parent, Vector3(side * random.randf_range(9.9, 10.5), size * 0.23, random.randf_range(-12, 12)), rock_mesh, surfaces[index % surfaces.size()])
+		rock.scale = Vector3(size * 1.35, size * 0.7, size)
