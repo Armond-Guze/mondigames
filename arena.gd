@@ -61,10 +61,10 @@ func build_map() -> void:
 	var concrete := Color("#39495c")
 	var cover := Color("#52677d")
 	OutdoorYard.dress(self, box(self, Vector3(0, -0.25, 0), Vector3(22, 0.5, 26), Color("#283747")))
-	box(self, Vector3(0, 2, -13), Vector3(22, 4, 0.5), concrete)
-	box(self, Vector3(0, 2, 13), Vector3(22, 4, 0.5), concrete)
+	wall(self, Vector3(0, 2, -13), Vector3(22, 4, 0.5), concrete)
+	wall(self, Vector3(0, 2, 13), Vector3(22, 4, 0.5), concrete)
 	for x in [-11, 11]:
-		box(self, Vector3(x, 2, 0), Vector3(0.5, 4, 26), concrete)
+		wall(self, Vector3(x, 2, 0), Vector3(0.5, 4, 26), concrete)
 	for position in [Vector3(-5, 1, 1), Vector3(1, 1, -2), Vector3(5, 1, 5)]:
 		add_cover(position, Vector3(2.8, 2, 1.5), cover, Color("#ffb451"), true)
 	for x in [-8, -4, 0, 4, 8]:
@@ -73,6 +73,11 @@ func build_map() -> void:
 func add_cover(center: Vector3, size: Vector3, color: Color, accent: Color, shipping_crate: bool) -> void:
 	var body := box(self, center, size, color)
 	CoverDetail.dress(body, size, accent, shipping_crate)
+
+func wall(parent: Node3D, center: Vector3, size: Vector3, color: Color) -> void:
+	var body := box(parent, center, size, color)
+	var mesh := body.get_child(1) as MeshInstance3D
+	preload("res://prop_mesh.gd").finish(mesh.material_override, preload("res://art/cement.jpg"), 0.65)
 
 func box(parent: Node3D, center: Vector3, size: Vector3, color: Color) -> StaticBody3D:
 	var body := StaticBody3D.new()

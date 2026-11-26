@@ -47,10 +47,10 @@ func build_map() -> void:
 	if is_outdoors():
 		OutdoorYard.dress(self, floor_body)
 	for z in [-13, 13]:
-		box(self, Vector3(0, 2.6, z), Vector3(22, 5.2, 0.5), walls)
+		wall(self, Vector3(0, 2.6, z), Vector3(22, 5.2, 0.5), walls)
 		box(self, Vector3(0, 3.4, z * 0.975), Vector3(21.4, 0.11, 0.08), trim)
 	for x in [-11, 11]:
-		box(self, Vector3(x, 2.6, 0), Vector3(0.5, 5.2, 26), walls)
+		wall(self, Vector3(x, 2.6, 0), Vector3(0.5, 5.2, 26), walls)
 		box(self, Vector3(x * 0.975, 3.4, 0), Vector3(0.08, 0.11, 25), trim)
 	for x in [-8, -4, 0, 4, 8]:
 		box(self, Vector3(x, 0.003, 0), Vector3(0.045, 0.006, 24), walls)

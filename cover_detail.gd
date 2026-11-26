@@ -6,6 +6,18 @@ static func dress(body: StaticBody3D, size: Vector3, accent: Color, shipping_cra
 	var dark := Prop.material(Color("#222c33"), 0.2)
 	var edge := Prop.material(Color("#76818a") if shipping_crate else Color("#888985"), 0.14)
 	var trim := Prop.material(accent, 0.1)
+	var shell := body.get_child(1) as MeshInstance3D
+	var coating := shell.material_override as StandardMaterial3D
+	var paint := preload("res://art/enamel.jpg")
+	Prop.finish(coating, paint if shipping_crate else preload("res://art/cement.jpg"), 0.72)
+	Prop.finish(edge, paint, 1.4)
+	if shipping_crate:
+		for index in range(-3, 4):
+			Prop.contoured(body, Vector3(index * size.x / 8.0, size.y * 0.5, 0), Vector3(0.065, 0.045, size.z - 0.06), edge)
+	else:
+		for side in [-1, 1]:
+			var footing := Vector3(0, -size.y * 0.44, side * size.z * 0.48)
+			Prop.contoured(body, footing, Vector3(size.x, 0.24, 0.18), coating)
 	var bolt := CylinderMesh.new()
 	bolt.top_radius = 0.035
 	bolt.bottom_radius = 0.042

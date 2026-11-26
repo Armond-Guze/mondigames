@@ -26,10 +26,11 @@ func _ready() -> void:
 	var steel := Prop.material(Color("#68727e"), 0.65, 0.38)
 	var black := Prop.material(Color("#181e25"), 0.1, 0.78)
 
+	Prop.finish(finish, preload("res://art/gunmetal.jpg"), 13.0)
+	Prop.finish(polymer, preload("res://art/rubber.jpg"), 20.0)
 	add_child(model)
 	model.add_child(slide)
-	Prop.block(slide, Vector3(0, 0.006, -0.009), Vector3(0.036, 0.024, 0.113), finish)
-	Prop.block(slide, Vector3(0, 0.020, -0.009), Vector3(0.029, 0.006, 0.111), finish)
+	Prop.contoured(slide, Vector3(0, 0.008, -0.009), Vector3(0.038, 0.030, 0.115), finish)
 	Prop.block(slide, Vector3(0.019, 0.01, -0.007), Vector3(0.003, 0.01, 0.025), steel)
 	for index in range(6):
 		for side in [-1, 1]:
@@ -37,7 +38,7 @@ func _ready() -> void:
 			groove.rotation_degrees.x = -17
 
 	Prop.block(model, Vector3(0, -0.012, 0.006), Vector3(0.034, 0.013, 0.097), polymer)
-	var grip := Prop.block(model, Vector3(0, -0.039, 0.034), Vector3(0.027, 0.049, 0.034), polymer)
+	var grip := Prop.contoured(model, Vector3(0, -0.039, 0.034), Vector3(0.027, 0.049, 0.034), polymer)
 	grip.rotation_degrees.x = -16
 	magazine = Prop.block(model, MAG_SEATED, Vector3(0.025, 0.032, 0.030), black)
 	for index in range(5):
@@ -54,6 +55,11 @@ func _ready() -> void:
 		Prop.block(slide, Vector3(side * 0.010, 0.028, 0.041), Vector3(0.006, 0.01, 0.009), black)
 		Prop.block(slide, Vector3(side * 0.010, 0.028, 0.046), Vector3(0.003, 0.003, 0.002), accent)
 
+	for side in [-1, 1]:
+		var panel := Prop.contoured(model, Vector3(side * 0.014, -0.042, 0.034), Vector3(0.004, 0.034, 0.025), polymer)
+		panel.rotation_degrees.x = -16
+		var pin := rounded_part(Vector3(side * 0.018, -0.011, 0.024), Vector3(0.003, 0.006, 0.006), steel)
+		pin.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	var glove := Prop.material(Color("#373836"))
 	var sleeve := Prop.material(Color("#56594b"))
 	var palm := rounded_part(Vector3(0.007, -0.045, 0.037), Vector3(0.041, 0.051, 0.051), glove)
